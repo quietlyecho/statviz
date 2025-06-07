@@ -17,6 +17,7 @@ class CentralLimitTheoremPlot:
         sample_size: int = 30,
         draw_number: int = 500,
         random_seed: int = 42,
+        save_path: str = None,
         **kwargs,
     ):
         """
@@ -31,6 +32,8 @@ class CentralLimitTheoremPlot:
         draw_number: int
             Number of times of drawing samples.
         random_seed: int
+        save_path: str
+            Path to save plots.
         """
         self.sig_level = sig_level
         self.pop_dist = pop_dist
@@ -38,6 +41,8 @@ class CentralLimitTheoremPlot:
         self.draw_number = draw_number
         self.random_seed = random_seed
         self.kwargs = kwargs
+        self.save_path = save_path
+
         self.rng = np.random.default_rng(random_seed)
 
     def get_pop_mean_and_var(self):
@@ -132,7 +137,7 @@ class CentralLimitTheoremPlot:
     def plot(
         self,
         size_pop: int = 1000,
-        bins_sampling_dist: np.array = np.linspace(0.2, 0.8, num=50),
+        bins_splg_dist: np.array = np.linspace(0.2, 0.8, num=50),
         save_path: str = None,
     ):
         """
@@ -142,7 +147,7 @@ class CentralLimitTheoremPlot:
         ----------
         size_pop: int
             Size of the sample to plot an approximate population distribution.
-        bins_sampling_dist: numpy.array
+        bins_splg_dist: numpy.array
             A numpy array that stores the intervals for plotting histogram.
         save_path: str
             The path to save the plotted image. Default is to not save.
@@ -174,7 +179,7 @@ class CentralLimitTheoremPlot:
         ax_blank.set_visible(False)
 
         # Ax plot sampling distribution
-        ax_splg.hist(sample_means, bins=bins_sampling_dist)
+        ax_splg.hist(sample_means, bins=bins_splg_dist)
         ax_splg.axvline(x=mu, linestyle='--', c='red', lw=1.5)
         ax_splg.set_title('Sampling distribution')
         ax_splg.axvline(x=mu, linestyle='--', c='red', lw=1.5)
@@ -195,5 +200,8 @@ class CentralLimitTheoremPlot:
             # Save figure
             fig.savefig(save_path)
             print(f'Image saved at {save_path}')
+        else:
+            fig.savefig(self.save_path)
+            print(f'Image saved at {self.save_path}')
 
         return fig
