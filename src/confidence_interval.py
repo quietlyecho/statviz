@@ -7,8 +7,9 @@ from central_limit_theorem_plot import CentralLimitTheoremPlot
 
 class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
     """
-    A class to visualize confidence intervals and demonstrate their coverage probability.
-    
+    A class to visualize confidence intervals and demonstrate their coverage
+    probability.
+
     Inherits from CentralLimitTheoremPlot to leverage population distribution
     sampling and statistical calculations.
     """
@@ -21,8 +22,9 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
 
     ):
         """
-        Creates visualizations showing confidence intervals and their coverage probability.
-        
+        Creates visualizations showing confidence intervals and their coverage
+        probability.
+
         Parameters
         ----------
         size_pop : int, default=1000
@@ -31,7 +33,7 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
             Bin edges for the sampling distribution histogram.
         save_path : str, optional
             Path to save the plot. If None, uses the default save_path.
-            
+
         Returns
         -------
         None
@@ -141,7 +143,7 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
     ):
         """
         Plot confidence intervals on the given axis.
-        
+
         Parameters
         ----------
         ax : matplotlib.axes.Axes
@@ -154,7 +156,7 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
             Sample means for each interval.
         upper_bounds : numpy.array
             Upper bounds of confidence intervals.
-            
+
         Returns
         -------
         None
@@ -174,7 +176,3 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
             )
             # Plot sample mean
             ax.plot(sample_means[i], i+1, f'o-{color_mid}', markersize=1)
-
-
-
-
