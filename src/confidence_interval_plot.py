@@ -1,25 +1,29 @@
+"""
+CONCEPT: Confidence Interval
+"""
+
+from typing import Optional, Sequence, Union
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import norm
 
 from central_limit_theorem_plot import CentralLimitTheoremPlot
-
+from utils import simulate_sample_draws, draw_one_sample
 
 class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
     """
     A class to visualize confidence intervals and demonstrate their coverage
     probability.
 
-    Inherits from CentralLimitTheoremPlot to leverage population distribution
+    Inherits from `CentralLimitTheoremPlot` to leverage population distribution
     sampling and statistical calculations.
     """
-
     def plot(
         self,
         size_pop: int = 1000,
-        bins_splg_dist: np.array = np.linspace(0.2, 0.8, num=50),
-        save_path: str = None,
-
+        bins_splg_dist: Union[int, Sequence[float], str, None] = None,
+        save_path: Optional[str] = None,
     ):
         """
         Creates visualizations showing confidence intervals and their coverage
@@ -36,11 +40,12 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
 
         Returns
         -------
-        None
-            Displays the plot and saves it if a path is specified.
+        fig : matplotlib.figure.Figure
         """
         mu, var = self.get_pop_mean_and_var()
-        samples = self.simulate_sample_draws(
+        samples = simulate_sample_draws(
+            rng=self.rng,
+            dist=self.pop_dist,
             draw_number=self.draw_number,
             sample_size=self.sample_size,
             )
@@ -57,8 +62,7 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
         )
 
         # Plot population distribution
-        # TODO: refactor below!
-        sample_for_pop = self.draw_one_sample(size=size_pop)
+        sample_for_pop = draw_one_sample(self.rng, self.pop_dist, size_pop)
         ax_pop.hist(sample_for_pop)
         ax_pop.set_title('Population distribution')
 
@@ -82,12 +86,10 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
         ax_intvls.axvline(x=mu, linestyle='--', c='red', lw=1.5)
 
         # Save figure
-        if save_path is not None:
-            fig.savefig(save_path)
-            print(f'Image saved at {save_path}')
-        else:
-            fig.savefig(self.save_path)
-            print(f'Image saved at {self.save_path}')
+        self._save_viz(fig, save_path)
+
+        return fig
+
 
     def calc_pct_within_interval(self, mu, lower_bounds, upper_bounds):
         """
@@ -97,8 +99,8 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
         ----------
         mu: float
             Population mean.
-        lower_bounds: numpy.array
-        upper_bounds: numpy.array
+        lower_bounds: numpy.ndarray
+        upper_bounds: numpy.ndarray
 
         Returns
         -------
@@ -109,7 +111,7 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
         pct_in = evals.sum() / evals.shape[0]
         return pct_in
 
-    def get_conf_intvls(self, var: float, samples: np.array):
+    def get_conf_intvls(self, var: float, samples: np.ndarray):
         """
         Calculates confidence intervals based on samples drawn.
 
@@ -117,12 +119,12 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
         ----------
         var: float
             Population variance.
-        samples: numpy.array
-            Output of `self.simulate_sample_draws` function.
+        samples: numpy.ndarray
+            Output of `simulate_sample_draws` function.
 
         Returns
         -------
-        A tuple of numpy.array, each of shape (trial_num, ):
+        A tuple of numpy.ndarray, each of shape (trial_num, ):
             1. lower_bounds
             2. sample_means
             3. upper_bounds
@@ -150,11 +152,11 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
             The axis to plot on.
         mu : float
             True population mean.
-        lower_bounds : numpy.array
+        lower_bounds : numpy.ndarray
             Lower bounds of confidence intervals.
-        sample_means : numpy.array
+        sample_means : numpy.ndarray
             Sample means for each interval.
-        upper_bounds : numpy.array
+        upper_bounds : numpy.ndarray
             Upper bounds of confidence intervals.
 
         Returns

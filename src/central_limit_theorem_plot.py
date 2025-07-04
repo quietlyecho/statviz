@@ -1,6 +1,11 @@
+from typing import Optional, Sequence, Union
+
 import numpy as np
+from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from scipy.stats import norm
+
+from utils import simulate_sample_draws, draw_one_sample
 
 DEFAULT_SAMPLE_SIZE = 30
 
@@ -13,11 +18,11 @@ class CentralLimitTheoremPlot:
     def __init__(
         self,
         sig_level: float = 0.05,
-        pop_dist: str = 'beta',
+        pop_dist: dict = {'name': 'beta', 'parameters': {'a': 0.5, 'b': 0.5}},
         sample_size: int = 30,
         draw_number: int = 500,
         random_seed: int = 42,
-        save_path: str = None,
+        save_path: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -25,14 +30,14 @@ class CentralLimitTheoremPlot:
         ----------
         sig_level: float
             Significance level defined in the study.
-        pop_dist: str
-            Distribution name of the population distribution.
+        pop_dist: dict
+            Contains two keys, "name" and "parameters".
         sample_size: int
             Sample size
         draw_number: int
             Number of times of drawing samples.
         random_seed: int
-        save_path: str
+        save_path: str or None
             Path to save plots.
         """
         self.sig_level = sig_level
@@ -45,75 +50,27 @@ class CentralLimitTheoremPlot:
 
         self.rng = np.random.default_rng(random_seed)
 
-    def get_pop_mean_and_var(self):
+        if pop_dist['name'] != 'beta':
+            raise ValueError('Currently only supports beta distribution for'
+                             'population')
+
+    def get_pop_mean_and_var(self, pop_dist: Optional[dict] = None):
         """
         Get mean and variance of population distribution.
         """
-        if self.pop_dist == 'beta':
-            a = self.kwargs['a']
-            b = self.kwargs['b']
+        if pop_dist is None:
+            pop_dist = self.pop_dist
+
+        params = pop_dist['parameters']
+
+        if pop_dist['name'] == 'beta':
+            a = params['a']
+            b = params['b']
             mu = (a + b) / 2
             var = (a * b) / ((a + b) ** 2 * (a + b + 1))
             return mu, var
         else:
-            raise ValueError('Currently only supports beta population'
-                             'distribution')
-
-    def simulate_sample_draws(self, draw_number, sample_size):
-        """
-        Draw samples independently for `draw_number` times.
-
-        Parameters
-        ----------
-        draw_number: int
-            Number of samples to draw.
-        sample_size: int
-            Sample size.
-
-        Returns
-        -------
-        samples: numpy.array
-            A numpy array of drawn samples, of shape
-            (draw_number, sample_size)
-        """
-        samples = np.array(
-            [self.draw_one_sample(sample_size) for t in range(draw_number)]
-        )
-        return samples
-
-    def draw_one_sample(self, size: int = DEFAULT_SAMPLE_SIZE):
-        """
-        Draw a single sample from the population distribution, with sample
-        size of `size`.
-
-        Parameters
-        ----------
-        size: int
-            Sample size, default value is 30.
-
-        Returns
-        -------
-        sample: numpy.array
-            A numpy array of shape `size`
-        """
-        if size is not None and size > 0:
-            size = size
-        elif size == 0:
-            raise ValueError('Invalid size, must be positive integers.')
-        else:
-            size = self.sample_size
-
-        if self.pop_dist == 'beta':
-            # Get key word arguments
-            a = self.kwargs['a']
-            b = self.kwargs['b']
-
-            sample = self.rng.beta(a=a, b=b, size=size)
-
-        else:
-            raise ValueError('Currently only supports beta population'
-                             'distribution')
-        return sample
+            raise ValueError('Unsupported populationd distribution for now')
 
     def calc_std_err_from_pop_var(self, var, sample_size):
         """
@@ -137,8 +94,8 @@ class CentralLimitTheoremPlot:
     def plot(
         self,
         size_pop: int = 1000,
-        bins_splg_dist: np.array = np.linspace(0.2, 0.8, num=50),
-        save_path: str = None,
+        bins_splg_dist: Union[int, Sequence[float], str, None] = None,
+        save_path: Optional[str] = None,
     ):
         """
         Plot the population distribution and sampling distribution
@@ -147,17 +104,19 @@ class CentralLimitTheoremPlot:
         ----------
         size_pop: int
             Size of the sample to plot an approximate population distribution.
-        bins_splg_dist: numpy.array
-            A numpy array that stores the intervals for plotting histogram.
+        bins_splg_dist: numpy.ndarray
+            A numpy.ndarray that stores the intervals for plotting histogram.
         save_path: str
             The path to save the plotted image. Default is to not save.
 
         Returns
         -------
-        fig: Figure
+        fig: matplotlib.figure.Figure
         """
         mu, var = self.get_pop_mean_and_var()
-        samples = self.simulate_sample_draws(
+        samples = simulate_sample_draws(
+            rng=self.rng,
+            dist=self.pop_dist,
             draw_number=self.draw_number,
             sample_size=self.sample_size,
             )
@@ -169,7 +128,7 @@ class CentralLimitTheoremPlot:
         )
 
         # Ax plot population distribution
-        sample_for_pop = self.draw_one_sample(size=size_pop)
+        sample_for_pop = draw_one_sample(self.rng, self.pop_dist, size_pop)
         ax_pop.hist(sample_for_pop, bins=20)
         ax_pop.set_title('Population distribution')
         ax_pop.axvline(x=mu, linestyle='--', c='red', lw=1.5)
@@ -196,12 +155,25 @@ class CentralLimitTheoremPlot:
         y_stdnorm = norm.pdf(x_stdnorm)  # Theoretical curve of standard normal
         ax_norm_splg.plot(x_stdnorm, y_stdnorm, '-', lw=2)
 
+        self._save_viz(fig, save_path)
+
+        return fig
+
+    def _save_viz(self, fig: Figure, save_path: Optional[str] = None):
+        """
+        Saves visualization into an image file.
+
+        Parameters
+        ----------
+        fig : matplotlib.figure.Figure
+        save_path : str
+        """
         if save_path is not None:
-            # Save figure
             fig.savefig(save_path)
             print(f'Image saved at {save_path}')
         else:
-            fig.savefig(self.save_path)
-            print(f'Image saved at {self.save_path}')
-
-        return fig
+            if self.save_path is not None:
+                fig.savefig(self.save_path)
+                print(f'Image saved at {self.save_path}')
+            else:
+                raise ValueError('Save path not provided.')
