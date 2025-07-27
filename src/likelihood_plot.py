@@ -89,7 +89,6 @@ class LikelihoodPlot:
         ax.set_title("Likelihood and Probability")
         ax.set_xlabel('X')
         ax.set_ylabel('Lambda')
-        #ax.set_box_aspect([1, 1, 1]) # ch!!!
 
         # Plot: highlighted areas
         # -----------------------
