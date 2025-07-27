@@ -1,11 +1,10 @@
 from typing import Optional, Sequence, Union
 
 import numpy as np
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-from utils import simulate_sample_draws, draw_one_sample
+from utils import simulate_sample_draws, draw_one_sample, save_viz
 
 DEFAULT_SAMPLE_SIZE = 30
 
@@ -22,7 +21,6 @@ class CentralLimitTheoremPlot:
         sample_size: int = 30,
         draw_number: int = 500,
         random_seed: int = 42,
-        save_path: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -37,8 +35,6 @@ class CentralLimitTheoremPlot:
         draw_number: int
             Number of times of drawing samples.
         random_seed: int
-        save_path: str or None
-            Path to save plots.
         """
         self.sig_level = sig_level
         self.pop_dist = pop_dist
@@ -46,7 +42,6 @@ class CentralLimitTheoremPlot:
         self.draw_number = draw_number
         self.random_seed = random_seed
         self.kwargs = kwargs
-        self.save_path = save_path
 
         self.rng = np.random.default_rng(random_seed)
 
@@ -95,6 +90,7 @@ class CentralLimitTheoremPlot:
         self,
         size_pop: int = 1000,
         bins_splg_dist: Union[int, Sequence[float], str, None] = None,
+        file_name: str = "clt.png",
         save_path: Optional[str] = None,
     ):
         """
@@ -102,12 +98,15 @@ class CentralLimitTheoremPlot:
 
         Parameters
         ----------
-        size_pop: int
+        size_pop : int
             Size of the sample to plot an approximate population distribution.
-        bins_splg_dist: numpy.ndarray
+        bins_splg_dist : numpy.ndarray
             A numpy.ndarray that stores the intervals for plotting histogram.
-        save_path: str
-            The path to save the plotted image. Default is to not save.
+        file_name : str
+            Image file name.
+        save_path : str
+            If provided, image file will be saved to this path. Default path
+            is "$HOME".
 
         Returns
         -------
@@ -155,25 +154,6 @@ class CentralLimitTheoremPlot:
         y_stdnorm = norm.pdf(x_stdnorm)  # Theoretical curve of standard normal
         ax_norm_splg.plot(x_stdnorm, y_stdnorm, '-', lw=2)
 
-        self._save_viz(fig, save_path)
+        save_viz(fig, file_name=file_name, save_path=save_path)
 
         return fig
-
-    def _save_viz(self, fig: Figure, save_path: Optional[str] = None):
-        """
-        Saves visualization into an image file.
-
-        Parameters
-        ----------
-        fig : matplotlib.figure.Figure
-        save_path : str
-        """
-        if save_path is not None:
-            fig.savefig(save_path)
-            print(f'Image saved at {save_path}')
-        else:
-            if self.save_path is not None:
-                fig.savefig(self.save_path)
-                print(f'Image saved at {self.save_path}')
-            else:
-                raise ValueError('Save path not provided.')
