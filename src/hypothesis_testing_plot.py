@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 from central_limit_theorem_plot import CentralLimitTheoremPlot
-from utils import simulate_sample_draws, draw_one_sample
+from utils import simulate_sample_draws, draw_one_sample, save_viz
 
 class HypothesisTestingPlot(CentralLimitTheoremPlot):
 
@@ -49,6 +49,7 @@ class HypothesisTestingPlot(CentralLimitTheoremPlot):
         self,
         size_pop: int = 1000,
         bins_splg_dist: Union[int, Sequence[float], str, None] = None,
+        file_name: str = "ht.png",
         save_path: Optional[str] = None,
         figsize: tuple = (10, 15),
     ) -> Figure:
@@ -123,6 +124,6 @@ class HypothesisTestingPlot(CentralLimitTheoremPlot):
         ax_splg_dist_3.text(mu_1 - mu_2 + 0.1, 200, f'Mean = {mu_1 - mu_2:.2f}')
 
         # Save figure
-        self._save_viz(fig, save_path)
+        save_viz(fig, file_name=file_name, save_path=save_path)
 
         return fig

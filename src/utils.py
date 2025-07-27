@@ -1,3 +1,7 @@
+import os
+from typing import Optional
+
+from matplotlib.figure import Figure
 import numpy as np
 from numpy.typing import NDArray
 
@@ -67,3 +71,31 @@ def draw_one_sample(
                          'distribution')
 
     return sample
+
+
+def save_viz(
+    fig: Figure,
+    file_name: str = "default.png",
+    save_path: Optional[str] = None
+):
+    """
+    Saves visualization into an image file. If not explicit `save_path` is
+    provided, file will be saved in the "$HOME" path, with `file_name`.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+    file_name : str
+    save_path : str
+        If provided, save to this path; default is None.
+    """
+    if save_path is not None:
+        fig.savefig(save_path)
+        print(f'Image saved at {save_path}')
+    else:
+        home_path = os.environ.get("HOME")
+        if home_path is None or file_name is None:
+            raise ValueError("home_path or file_name cannot be None")
+        full_path = os.path.join(home_path, file_name)
+        fig.savefig(full_path)
+        print(f'Image saved at {full_path}')

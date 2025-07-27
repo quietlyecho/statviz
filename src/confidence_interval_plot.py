@@ -9,7 +9,7 @@ import numpy as np
 from scipy.stats import norm
 
 from central_limit_theorem_plot import CentralLimitTheoremPlot
-from utils import simulate_sample_draws, draw_one_sample
+from utils import simulate_sample_draws, draw_one_sample, save_viz
 
 class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
     """
@@ -23,6 +23,7 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
         self,
         size_pop: int = 1000,
         bins_splg_dist: Union[int, Sequence[float], str, None] = None,
+        file_name: str = "ci.png",
         save_path: Optional[str] = None,
     ):
         """
@@ -86,7 +87,7 @@ class ConfidenceIntervalPlot(CentralLimitTheoremPlot):
         ax_intvls.axvline(x=mu, linestyle='--', c='red', lw=1.5)
 
         # Save figure
-        self._save_viz(fig, save_path)
+        save_viz(fig, file_name=file_name, save_path=save_path)
 
         return fig
 
